@@ -8,3 +8,4 @@ ollama
 Pillow
 openwakeword
 mediapipe
+websocket-client

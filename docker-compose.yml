@@ -1,0 +1,29 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ROB2001 — docker-compose for ROS2 simulation
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  ros2_sim:
+    build:
+      context: ./ros2_docker
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    container_name: rob2001_ros2_sim
+    ports:
+      - "9090:9090"       # rosbridge WebSocket
+      - "6080:6080"       # noVNC (RViz2 + Gazebo in browser)
+    environment:
+      - TURTLEBOT3_MODEL=waffle
+      - ROS_DOMAIN_ID=0
+      - DISPLAY=:1
+    # Allocate extra shared memory for Gazebo + RViz rendering
+    shm_size: "1g"
+    # Needed for GPU passthrough on Linux; harmless on macOS
+    privileged: false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bash", "-c", "python3 -c \"import socket; s=socket.socket(); s.settimeout(2); s.connect(('localhost',9090)); s.close()\""]
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 180s
