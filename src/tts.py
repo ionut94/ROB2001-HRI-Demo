@@ -1,17 +1,23 @@
 """Text-to-speech backends.
 
-- speak_pyttsx3(): Offline, works in CLI. Do NOT use from Tkinter on macOS.
-- speak_gtts(): Cross-platform, requires internet. Safe with Tkinter.
+- speak_pyttsx3():      Offline, direct call. Fine for CLI scripts.
+- speak_pyttsx3_safe(): Offline, runs pyttsx3 in a subprocess so it is safe
+                        to call from Tkinter on macOS (avoids NSApplication
+                        / run-loop conflicts). Used by the GUI demos.
+
+Both produce the same system voice — no gTTS / internet required.
 """
 
-import io
+import subprocess
+import sys
+import textwrap
 
 import pyttsx3
 
 from .config import LANGUAGE_MAP
 
 
-# ── pyttsx3 backend (CLI) ────────────────────────────────────────────────────
+# ── pyttsx3 backend (direct — CLI) ───────────────────────────────────────────
 
 def speak_pyttsx3(text: str, rate: int = 175, language: str = "en"):
     """Speak text via pyttsx3. Creates a fresh engine each call (macOS safety)."""
@@ -32,33 +38,38 @@ def speak_pyttsx3(text: str, rate: int = 175, language: str = "en"):
     engine.stop()
 
 
-# ── gTTS + pygame backend (GUI) ──────────────────────────────────────────────
+# ── pyttsx3 backend (subprocess — GUI-safe) ──────────────────────────────────
 
-def init_pygame_mixer():
-    """Initialise pygame mixer. Call once at GUI startup."""
-    import pygame
-    pygame.mixer.init()
+def speak_pyttsx3_safe(text: str, rate: int = 175, language: str = "en"):
+    """Speak text via pyttsx3 in a child process.
 
-
-def quit_pygame_mixer():
-    """Shut down pygame mixer. Call on GUI close."""
-    import pygame
-    pygame.mixer.quit()
-
-
-def speak_gtts(text: str, language: str = "en"):
-    """Speak text via Google TTS + pygame. Cross-platform, no Tkinter conflict."""
-    import pygame
-    from gtts import gTTS
-
+    This avoids the macOS conflict between pyttsx3's NSApplication run-loop
+    and Tkinter's main loop, while producing the exact same system voice as
+    the CLI backend.
+    """
+    # Build a small self-contained script that the subprocess will execute.
+    script = textwrap.dedent(f"""\
+        import pyttsx3
+        engine = pyttsx3.init()
+        engine.setProperty("rate", {rate})
+        language = {language!r}
+        if language != "en":
+            lang_map = {dict(LANGUAGE_MAP)!r}
+            lang_name = lang_map.get(language, "")
+            voices = engine.getProperty("voices")
+            for v in voices:
+                if lang_name.lower() in v.name.lower() or language in v.id.lower():
+                    engine.setProperty("voice", v.id)
+                    break
+        engine.say({text!r})
+        engine.runAndWait()
+        engine.stop()
+    """)
     try:
-        tts = gTTS(text=text, lang=language)
-        buf = io.BytesIO()
-        tts.write_to_fp(buf)
-        buf.seek(0)
-        pygame.mixer.music.load(buf, "mp3")
-        pygame.mixer.music.play()
-        while pygame.mixer.music.get_busy():
-            pygame.time.wait(50)
-    except Exception as e:
-        print(f"  ⚠  TTS error: {e}")
+        subprocess.run(
+            [sys.executable, "-c", script],
+            timeout=30,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        print("  ⚠  TTS subprocess timed out")

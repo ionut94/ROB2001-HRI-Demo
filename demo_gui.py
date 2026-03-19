@@ -23,7 +23,7 @@ import whisper
 
 from src.config import SAMPLE_RATE, WEBCAM_UPDATE_MS
 from src.audio import transcribe
-from src.tts import speak_gtts, init_pygame_mixer, quit_pygame_mixer
+from src.tts import speak_pyttsx3_safe
 from src.vision import open_webcam, encode_frame_to_base64
 from src.vlm import ask_vlm
 
@@ -41,7 +41,6 @@ class HRIDemoApp:
         self.cap = None
         self.whisper_model = None
 
-        init_pygame_mixer()
         self._build_ui()
         self._start_webcam()
         self._load_models_async()
@@ -172,7 +171,7 @@ class HRIDemoApp:
             self.root.after(0, lambda: self._log(f"You: {text}", "user"))
             self.root.after(0, lambda: self.status_var.set("Speaking…"))
             self.root.after(0, lambda: self._log(f"Robot (echo): {text}", "robot"))
-            speak_gtts(text)
+            speak_pyttsx3_safe(text)
         else:
             self.root.after(0, lambda: self._log(f"You: {text}", "user"))
             self.root.after(0, lambda: self.status_var.set("Asking VLM…"))
@@ -188,7 +187,7 @@ class HRIDemoApp:
                 answer = f"Error contacting Ollama: {e}"
             self.root.after(0, lambda: self._log(f"Robot: {answer}", "robot"))
             self.root.after(0, lambda: self.status_var.set("Speaking…"))
-            speak_gtts(answer)
+            speak_pyttsx3_safe(answer)
 
         self.root.after(0, lambda: self.status_var.set(
             "Ready — hold the button to record"))
@@ -200,7 +199,6 @@ class HRIDemoApp:
         self.log.configure(state=tk.DISABLED)
 
     def on_close(self):
-        quit_pygame_mixer()
         if self.cap:
             self.cap.release()
         self.root.destroy()

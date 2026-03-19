@@ -28,7 +28,7 @@ import ollama as ollama_client
 from src.config import (SAMPLE_RATE, WEBCAM_UPDATE_MS, VLM_MODEL,
                          LANGUAGE_MAP, WAKE_THRESHOLD)
 from src.audio import transcribe
-from src.tts import speak_gtts, init_pygame_mixer, quit_pygame_mixer
+from src.tts import speak_pyttsx3_safe
 from src.emotion import classify_emotion
 from src.vision import open_webcam, encode_frame_to_base64
 from src.vlm import ConversationHistory
@@ -65,7 +65,6 @@ class HRIDemoApp:
         self.wake_model = None
         self.wake_stream = None
 
-        init_pygame_mixer()
         self._build_ui()
         self._start_webcam()
         self._load_models_async()
@@ -357,7 +356,7 @@ class HRIDemoApp:
         self.root.after(0, lambda: self.emotion_var.set(f"Emotion: {emotion}"))
         self.root.after(0, lambda: self._log(f"Robot (echo): {text}", "robot"))
         self.history.add("assistant", text)
-        speak_gtts(text, self.lang_var.get())
+        speak_pyttsx3_safe(text, language=self.lang_var.get())
 
     def _process_vision(self, text, frame):
         self.root.after(0, lambda: self._log(f"You: {text}", "user"))
@@ -380,7 +379,7 @@ class HRIDemoApp:
         if self.emotion_tts_var.get() and emotion != "neutral":
             self.root.after(0, lambda: self._log(f"  [Emotion: {emotion}]", "emotion"))
         self.root.after(0, lambda: self._log(f"Robot: {answer}", "robot"))
-        speak_gtts(answer, self.lang_var.get())
+        speak_pyttsx3_safe(answer, language=self.lang_var.get())
 
     def _process_object_detect(self, text, frame):
         self.root.after(0, lambda: self._log(f"You: {text}", "user"))
@@ -403,12 +402,12 @@ class HRIDemoApp:
             det_text = ", ".join(d.get("label", "?") for d in detections)
             self.root.after(0, lambda: self._log(
                 f"Robot: Found {len(detections)} object(s): {det_text}", "robot"))
-            speak_gtts(f"I found {len(detections)} objects: {det_text}",
-                       self.lang_var.get())
+            speak_pyttsx3_safe(f"I found {len(detections)} objects: {det_text}",
+                               language=self.lang_var.get())
         else:
             self.root.after(0, lambda: self._log(f"Robot: {raw}", "robot"))
-            speak_gtts("I couldn't identify specific objects with bounding boxes.",
-                       self.lang_var.get())
+            speak_pyttsx3_safe("I couldn't identify specific objects with bounding boxes.",
+                               language=self.lang_var.get())
 
     def _process_command(self, text, frame):
         self.root.after(0, lambda: self._log(f"Command: {text}", "user"))
@@ -430,10 +429,10 @@ class HRIDemoApp:
             self.root.after(0, lambda: self._log(f"Parsed command:\n{json_str}", "json"))
             action = parsed.get("action", "unknown")
             obj = parsed.get("object", "") or ""
-            speak_gtts(f"Understood: {action} {obj}", self.lang_var.get())
+            speak_pyttsx3_safe(f"Understood: {action} {obj}", language=self.lang_var.get())
         else:
             self.root.after(0, lambda: self._log(f"Robot: {raw}", "robot"))
-            speak_gtts("Sorry, I could not parse that command.", self.lang_var.get())
+            speak_pyttsx3_safe("Sorry, I could not parse that command.", language=self.lang_var.get())
 
     def _process_gesture(self, text, frame, gesture_info):
         gesture = gesture_info.get("gesture", "none")
@@ -464,7 +463,7 @@ class HRIDemoApp:
         emotion = classify_emotion(answer)
         self.root.after(0, lambda: self.emotion_var.set(f"Emotion: {emotion}"))
         self.root.after(0, lambda: self._log(f"Robot: {answer}", "robot"))
-        speak_gtts(answer, self.lang_var.get())
+        speak_pyttsx3_safe(answer, language=self.lang_var.get())
 
     # ── History ───────────────────────────────────────────────────────────
 
@@ -488,7 +487,6 @@ class HRIDemoApp:
         if self.wake_stream:
             self.wake_stream.stop()
             self.wake_stream.close()
-        quit_pygame_mixer()
         if self.cap:
             self.cap.release()
         if self.mp_hands:

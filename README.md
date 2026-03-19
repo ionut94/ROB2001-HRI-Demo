@@ -47,7 +47,7 @@ All v1 features plus:
 │  Hand + Pose │    │  Recognition │             ▼
 └──────────────┘    └──────────────┘    ┌──────────────────┐
                                         │  TTS Engine      │
-┌──────────────┐                        │  (pyttsx3/gTTS)  │
+┌──────────────┐                        │  (pyttsx3)       │
 │  OpenWakeWord│                        └──────────────────┘
 │  "Hey Jarvis"│
 └──────────────┘
@@ -68,7 +68,7 @@ All v1 features plus:
     ├── __init__.py
     ├── config.py              # Shared constants & settings
     ├── audio.py               # Microphone recording & Whisper transcription
-    ├── tts.py                 # Text-to-speech (pyttsx3 for CLI, gTTS for GUI)
+    ├── tts.py                 # Text-to-speech via pyttsx3 (direct + subprocess-safe)
     ├── vision.py              # Webcam capture & base64 frame encoding
     ├── vlm.py                 # Ollama VLM interaction & conversation history
     ├── emotion.py             # Keyword-based emotion classification
@@ -111,11 +111,6 @@ source venv/bin/activate   # macOS / Linux
 ```bash
 pip install -r requirements.txt
 ```
-
-> **Note (GUI only):** The GUI versions also require `gtts` and `pygame` for cross-platform TTS. Install them with:
-> ```bash
-> pip install gtts pygame
-> ```
 
 ### 4. Pull the VLM model via Ollama
 
@@ -196,7 +191,7 @@ Supported languages: `en`, `fr`, `es`, `de`, `zh`, `ja`, `ro`
 | *"Cannot open webcam"* | Check that no other app is using the camera. Try changing the webcam index in `open_webcam(index=1)`. |
 | *Ollama connection error* | Ensure Ollama is running (`ollama serve`) and the model is pulled (`ollama pull qwen2.5vl:3b`). |
 | *No audio captured* | Check your microphone permissions in System Settings and verify `sounddevice` can see your input device (`python -m sounddevice`). |
-| *pyttsx3 crashes on macOS with GUI* | This is a known macOS/Tkinter conflict. The GUI versions use gTTS + pygame instead. Use `demo_gui.py` or `demo_gui_v2.py`. |
+| *pyttsx3 crashes on macOS with GUI* | The GUI versions run pyttsx3 in a subprocess to avoid the known macOS NSApplication/Tkinter conflict. If issues persist, check your Python version. |
 | *Wake word not detecting* | Lower `WAKE_THRESHOLD` in `src/config.py`. Ensure a quiet environment. |
 
 ---
@@ -206,8 +201,7 @@ Supported languages: `en`, `fr`, `es`, `de`, `zh`, `ja`, `ro`
 | Component | Library / Tool |
 |-----------|---------------|
 | Speech-to-Text | [OpenAI Whisper](https://github.com/openai/whisper) |
-| Text-to-Speech (CLI) | [pyttsx3](https://pyttsx3.readthedocs.io/) |
-| Text-to-Speech (GUI) | [gTTS](https://gtts.readthedocs.io/) + [pygame](https://www.pygame.org/) |
+| Text-to-Speech | [pyttsx3](https://pyttsx3.readthedocs.io/) |
 | Vision-Language Model | [Ollama](https://ollama.com/) with [Qwen 2.5 VL](https://huggingface.co/Qwen/Qwen2.5-VL-3B) |
 | Webcam & Drawing | [OpenCV](https://opencv.org/) |
 | Hand & Pose Tracking | [MediaPipe](https://mediapipe.dev/) |
