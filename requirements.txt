@@ -1,0 +1,10 @@
+openai-whisper
+pyttsx3
+opencv-python
+sounddevice
+numpy
+scipy
+ollama
+Pillow
+openwakeword
+mediapipe
