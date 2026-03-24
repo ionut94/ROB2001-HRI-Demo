@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PandaQuest — Life Sidequests for Students</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Floating particles background -->
+        <div class="particles" id="particles"></div>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="panda-icon" id="mascotSmall">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Ears -->
+                        <circle cx="25" cy="20" r="16" fill="#7c3aed"/>
+                        <circle cx="75" cy="20" r="16" fill="#7c3aed"/>
+                        <circle cx="25" cy="20" r="10" fill="#4c1d95"/>
+                        <circle cx="75" cy="20" r="10" fill="#4c1d95"/>
+                        <!-- Head -->
+                        <ellipse cx="50" cy="50" rx="38" ry="35" fill="#e9d5ff"/>
+                        <!-- Eye patches -->
+                        <ellipse cx="35" cy="45" rx="14" ry="12" fill="#7c3aed" transform="rotate(-10 35 45)"/>
+                        <ellipse cx="65" cy="45" rx="14" ry="12" fill="#7c3aed" transform="rotate(10 65 45)"/>
+                        <!-- Eyes -->
+                        <circle cx="35" cy="45" r="6" fill="white"/>
+                        <circle cx="65" cy="45" r="6" fill="white"/>
+                        <circle cx="37" cy="44" r="3.5" fill="#1e1b4b"/>
+                        <circle cx="67" cy="44" r="3.5" fill="#1e1b4b"/>
+                        <circle cx="38" cy="43" r="1.5" fill="white"/>
+                        <circle cx="68" cy="43" r="1.5" fill="white"/>
+                        <!-- Nose -->
+                        <ellipse cx="50" cy="58" rx="5" ry="3.5" fill="#4c1d95"/>
+                        <!-- Mouth -->
+                        <path d="M 44 62 Q 50 68 56 62" stroke="#4c1d95" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <!-- Blush -->
+                        <ellipse cx="24" cy="55" rx="6" ry="4" fill="#f0abfc" opacity="0.5"/>
+                        <ellipse cx="76" cy="55" rx="6" ry="4" fill="#f0abfc" opacity="0.5"/>
+                    </svg>
+                </div>
+                <h1>PandaQuest</h1>
+            </div>
+            <div class="header-stats">
+                <div class="stat-badge" id="streakBadge" title="Day streak">
+                    <span class="stat-icon">&#x1f525;</span>
+                    <span id="streakCount">0</span>
+                </div>
+                <div class="stat-badge" id="xpBadge" title="Experience points">
+                    <span class="stat-icon">&#x2b50;</span>
+                    <span id="xpCount">0</span> XP
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Section with Mascot -->
+        <section class="hero" id="heroSection">
+            <div class="mascot-container" id="mascotContainer">
+                <svg class="mascot-svg" viewBox="0 0 300 350" xmlns="http://www.w3.org/2000/svg" id="mascotSvg">
+                    <!-- Body -->
+                    <ellipse cx="150" cy="260" rx="75" ry="70" fill="#e9d5ff"/>
+                    <!-- Belly -->
+                    <ellipse cx="150" cy="270" rx="50" ry="48" fill="white" opacity="0.6"/>
+                    <!-- Left arm -->
+                    <ellipse cx="68" cy="240" rx="25" ry="18" fill="#7c3aed" transform="rotate(-20 68 240)"/>
+                    <!-- Right arm (waving) -->
+                    <g id="wavingArm">
+                        <ellipse cx="232" cy="220" rx="25" ry="18" fill="#7c3aed" transform="rotate(30 232 220)"/>
+                    </g>
+                    <!-- Left foot -->
+                    <ellipse cx="115" cy="325" rx="22" ry="14" fill="#7c3aed"/>
+                    <!-- Right foot -->
+                    <ellipse cx="185" cy="325" rx="22" ry="14" fill="#7c3aed"/>
+                    <!-- Ears -->
+                    <circle cx="90" cy="80" r="30" fill="#7c3aed"/>
+                    <circle cx="210" cy="80" r="30" fill="#7c3aed"/>
+                    <circle cx="90" cy="80" r="18" fill="#4c1d95"/>
+                    <circle cx="210" cy="80" r="18" fill="#4c1d95"/>
+                    <!-- Head -->
+                    <ellipse cx="150" cy="140" rx="72" ry="68" fill="#e9d5ff"/>
+                    <!-- Eye patches -->
+                    <ellipse cx="120" cy="130" rx="26" ry="22" fill="#7c3aed" transform="rotate(-10 120 130)"/>
+                    <ellipse cx="180" cy="130" rx="26" ry="22" fill="#7c3aed" transform="rotate(10 180 130)"/>
+                    <!-- Eyes -->
+                    <circle cx="120" cy="130" r="12" fill="white"/>
+                    <circle cx="180" cy="130" r="12" fill="white"/>
+                    <!-- Pupils (animated) -->
+                    <circle cx="123" cy="128" r="7" fill="#1e1b4b" class="pupil"/>
+                    <circle cx="183" cy="128" r="7" fill="#1e1b4b" class="pupil"/>
+                    <!-- Eye shine -->
+                    <circle cx="126" cy="125" r="3" fill="white"/>
+                    <circle cx="186" cy="125" r="3" fill="white"/>
+                    <!-- Nose -->
+                    <ellipse cx="150" cy="155" rx="9" ry="6" fill="#4c1d95"/>
+                    <!-- Mouth -->
+                    <path d="M 135 165 Q 150 178 165 165" stroke="#4c1d95" stroke-width="3" fill="none" stroke-linecap="round" id="mascotMouth"/>
+                    <!-- Blush -->
+                    <ellipse cx="95" cy="150" rx="12" ry="7" fill="#f0abfc" opacity="0.4"/>
+                    <ellipse cx="205" cy="150" rx="12" ry="7" fill="#f0abfc" opacity="0.4"/>
+                    <!-- Weather accessory slot -->
+                    <g id="weatherAccessory"></g>
+                </svg>
+                <div class="speech-bubble" id="speechBubble">
+                    <p id="speechText">Hey there! Let me check the weather and find you a quest!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Weather Card -->
+        <section class="weather-section" id="weatherSection" style="display:none;">
+            <div class="weather-card">
+                <div class="weather-icon" id="weatherIcon">&#x2600;&#xfe0f;</div>
+                <div class="weather-info">
+                    <h3 id="weatherTemp">--°</h3>
+                    <p id="weatherDesc">Loading...</p>
+                    <p class="weather-location" id="weatherLocation">--</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quest Card -->
+        <section class="quest-section" id="questSection" style="display:none;">
+            <div class="quest-card" id="questCard">
+                <div class="quest-header">
+                    <span class="quest-type-badge" id="questTypeBadge">Outdoor</span>
+                    <span class="quest-difficulty" id="questDifficulty">
+                        <span>&#x2b50;</span>
+                    </span>
+                </div>
+                <h2 class="quest-title" id="questTitle">Your Sidequest</h2>
+                <p class="quest-description" id="questDescription">Loading your personalized quest...</p>
+                <div class="quest-details">
+                    <div class="quest-detail">
+                        <span class="detail-icon">&#x23f1;&#xfe0f;</span>
+                        <span id="questDuration">15 min</span>
+                    </div>
+                    <div class="quest-detail">
+                        <span class="detail-icon">&#x2728;</span>
+                        <span id="questXP">+50 XP</span>
+                    </div>
+                    <div class="quest-detail">
+                        <span class="detail-icon">&#x1f3af;</span>
+                        <span id="questCategory">Wellness</span>
+                    </div>
+                </div>
+                <div class="quest-tip" id="questTip">
+                    <strong>Pro tip:</strong> <span id="questTipText">Take a photo when you're done!</span>
+                </div>
+                <div class="quest-actions">
+                    <button class="btn btn-primary" id="acceptQuest">Accept Quest</button>
+                    <button class="btn btn-secondary" id="rerollQuest">Reroll &#x1f3b2;</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Active Quest -->
+        <section class="active-quest-section" id="activeQuestSection" style="display:none;">
+            <div class="active-quest-card">
+                <div class="active-quest-header">
+                    <h3>Active Quest</h3>
+                    <div class="timer" id="questTimer">00:00</div>
+                </div>
+                <h2 id="activeQuestTitle">--</h2>
+                <p id="activeQuestDesc">--</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="quest-actions">
+                    <button class="btn btn-success" id="completeQuest">Complete Quest &#x2705;</button>
+                    <button class="btn btn-ghost" id="abandonQuest">Abandon</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Completion Celebration -->
+        <section class="celebration-section" id="celebrationSection" style="display:none;">
+            <div class="celebration-card">
+                <div class="confetti-container" id="confetti"></div>
+                <div class="celebration-mascot">
+                    <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="35" cy="25" r="18" fill="#7c3aed"/>
+                        <circle cx="85" cy="25" r="18" fill="#7c3aed"/>
+                        <circle cx="35" cy="25" r="11" fill="#4c1d95"/>
+                        <circle cx="85" cy="25" r="11" fill="#4c1d95"/>
+                        <ellipse cx="60" cy="60" rx="42" ry="40" fill="#e9d5ff"/>
+                        <ellipse cx="43" cy="52" rx="15" ry="13" fill="#7c3aed" transform="rotate(-10 43 52)"/>
+                        <ellipse cx="77" cy="52" rx="15" ry="13" fill="#7c3aed" transform="rotate(10 77 52)"/>
+                        <!-- Happy closed eyes -->
+                        <path d="M 34 52 Q 43 44 52 52" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M 68 52 Q 77 44 86 52" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <ellipse cx="60" cy="70" rx="6" ry="4" fill="#4c1d95"/>
+                        <path d="M 48 76 Q 60 88 72 76" stroke="#4c1d95" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <ellipse cx="28" cy="65" rx="7" ry="5" fill="#f0abfc" opacity="0.5"/>
+                        <ellipse cx="92" cy="65" rx="7" ry="5" fill="#f0abfc" opacity="0.5"/>
+                    </svg>
+                </div>
+                <h2>Quest Complete!</h2>
+                <p class="xp-earned" id="xpEarned">+50 XP</p>
+                <p class="celebration-msg" id="celebrationMsg">You're doing amazing! Keep it up!</p>
+                <button class="btn btn-primary" id="nextQuest">Next Quest</button>
+            </div>
+        </section>
+
+        <!-- Quest History -->
+        <section class="history-section" id="historySection">
+            <h3 class="history-title" id="historyToggle">
+                Quest Log <span class="toggle-arrow">&#x25bc;</span>
+            </h3>
+            <div class="history-list" id="historyList" style="display:none;"></div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>PandaQuest — Balance your study life, one quest at a time.</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
