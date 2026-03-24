@@ -290,6 +290,10 @@ class HRIDemoApp:
         self.status_var.set("Recording…")
         self.record_btn.configure(text="Recording…")
 
+        # Pause wake word stream to avoid two simultaneous input streams
+        if self.wake_stream:
+            self.wake_stream.stop()
+
         def audio_callback(indata, frames, time_info, status):
             if self.recording:
                 self.audio_chunks.append(indata.copy())
@@ -306,6 +310,10 @@ class HRIDemoApp:
             self.stream.stop()
             self.stream.close()
             self.stream = None
+
+        # Resume wake word stream if it was active
+        if self.wake_active and self.wake_stream:
+            self.wake_stream.start()
 
         self.record_btn.configure(text="Hold to Record")
         self.status_var.set("Processing…")

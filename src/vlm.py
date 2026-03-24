@@ -2,7 +2,7 @@
 
 import ollama
 
-from .config import VLM_MODEL, MAX_HISTORY_TURNS
+from .config import VLM_MODEL, TEXT_MODEL, MAX_HISTORY_TURNS
 
 
 class ConversationHistory:
@@ -57,6 +57,30 @@ def ask_vlm(image_b64: str | None, question: str,
 
     if history is not None:
         history.add("user", question, [image_b64] if image_b64 else None)
+        history.add("assistant", answer)
+
+    return answer
+
+
+def ask_llm(question: str, system_prompt: str | None = None,
+            history: ConversationHistory | None = None) -> str:
+    """Send a text-only question to the LLM (no vision model overhead)."""
+    print("  🤖  Thinking …")
+
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+
+    if history is not None:
+        messages.extend(history.get_messages())
+
+    messages.append({"role": "user", "content": question})
+
+    response = ollama.chat(model=TEXT_MODEL, messages=messages)
+    answer = response["message"]["content"].strip()
+
+    if history is not None:
+        history.add("user", question)
         history.add("assistant", answer)
 
     return answer

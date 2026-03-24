@@ -48,9 +48,10 @@ from src.config import LANGUAGE_MAP
 from src.audio import record_audio_interactive, transcribe
 from src.tts import speak_pyttsx3
 from src.emotion import classify_emotion, get_emotion_rate
-from src.vlm import ask_vlm, ConversationHistory
+from src.vlm import ask_vlm, ask_llm, ConversationHistory
 from src.commands import parse_command_json
 from src.ros_bridge import RosbridgeClient
+from src.vision import encode_frame_to_base64
 from src.navigation import (
     NAV_COMMAND_SYSTEM_PROMPT,
     parse_nav_command,
@@ -122,12 +123,14 @@ def on_camera_image(msg: dict):
         img_data = msg.get("data", "")
         # rosbridge sends the image data as a base64-encoded string
         if img_data:
-            with robot_state["image_lock"]:
-                robot_state["last_image_b64"] = img_data
-                # Decode to numpy for display
-                img_bytes = base64.b64decode(img_data)
-                np_arr = np.frombuffer(img_bytes, dtype=np.uint8)
-                robot_state["last_image_np"] = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            img_bytes = base64.b64decode(img_data)
+            np_arr = np.frombuffer(img_bytes, dtype=np.uint8)
+            frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            if frame is not None:
+                with robot_state["image_lock"]:
+                    robot_state["last_image_np"] = frame
+                    # Resize for VLM (same as webcam pipeline)
+                    robot_state["last_image_b64"] = encode_frame_to_base64(frame)
     except Exception:
         pass
 
@@ -260,11 +263,8 @@ def pipeline_navigation(bridge: RosbridgeClient, whisper_model):
 
         print(f"  📝  Command: {command_text}")
 
-        # Get optional camera image for context
-        img_b64 = get_current_image_b64()
-
-        # Parse the navigation command via VLM
-        raw = ask_vlm(img_b64, command_text, system_prompt=NAV_COMMAND_SYSTEM_PROMPT)
+        # Parse the navigation command via text-only LLM (no image needed)
+        raw = ask_llm(command_text, system_prompt=NAV_COMMAND_SYSTEM_PROMPT)
         nav_cmd = parse_nav_command(raw)
 
         if not nav_cmd:
@@ -284,6 +284,7 @@ def pipeline_navigation(bridge: RosbridgeClient, whisper_model):
             pos = get_current_position()
             location_desc = describe_robot_position(pos)
             answer = location_desc
+            img_b64 = get_current_image_b64()
             if img_b64:
                 answer = ask_vlm(
                     img_b64,
@@ -432,15 +433,15 @@ No other text."""
 
         print(f"  📝  You said: {user_text}")
 
-        # Step 1: Classify intent
-        intent_raw = ask_vlm(None, user_text, system_prompt=ROUTER_PROMPT)
+        # Step 1: Classify intent (text-only — no image needed)
+        intent_raw = ask_llm(user_text, system_prompt=ROUTER_PROMPT)
         intent_data = parse_nav_command(intent_raw)  # reuse JSON parser
         intent = intent_data.get("intent", "general_chat") if intent_data else "general_chat"
         print(f"  🧠  Intent: {intent}")
 
         if intent == "navigation":
-            # Parse as navigation command
-            raw = ask_vlm(img_b64, user_text, system_prompt=NAV_COMMAND_SYSTEM_PROMPT)
+            # Parse as navigation command (text-only — no image needed)
+            raw = ask_llm(user_text, system_prompt=NAV_COMMAND_SYSTEM_PROMPT)
             nav_cmd = parse_nav_command(raw)
             if nav_cmd:
                 action = nav_cmd.get("action", "")

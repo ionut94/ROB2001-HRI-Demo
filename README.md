@@ -146,12 +146,13 @@ source venv/bin/activate   # macOS / Linux
 pip install -r requirements.txt
 ```
 
-### 4. Pull the VLM model via Ollama
+### 4. Pull the Ollama models
 
 Make sure Ollama is running, then:
 
 ```bash
-ollama pull qwen2.5vl:3b
+ollama pull qwen2.5vl:3b   # Vision-language model (v1/v2/v3 vision pipelines)
+ollama pull qwen2.5:3b      # Text-only model (v3 navigation & intent parsing)
 ```
 
 ### 5. (Optional) MediaPipe models
@@ -299,6 +300,7 @@ Key settings are defined in `src/config.py`:
 | `MAX_HISTORY_TURNS` | `10` | Conversation memory window size |
 | `WAKE_THRESHOLD` | `0.5` | openwakeword detection sensitivity |
 | `VLM_MODEL` | `qwen2.5vl:3b` | Ollama vision-language model name |
+| `TEXT_MODEL` | `qwen2.5:3b` | Text-only LLM (navigation / intent parsing) |
 | `WEBCAM_UPDATE_MS` | `33` | Webcam refresh interval (~30 fps) |
 
 Supported languages: `en`, `fr`, `es`, `de`, `zh`, `ja`, `ro`
@@ -324,7 +326,96 @@ Supported languages: `en`, `fr`, `es`, `de`, `zh`, `ja`, `ro`
 
 ---
 
-## 📚 Technologies Used
+## � Alternative TTS Engines
+
+The default TTS engine is **pyttsx3**, which uses the platform's built-in system voice (SAPI5 on Windows, NSSpeechSynthesizer on macOS, espeak on Linux). If the default voice quality is not satisfactory (especially the Windows SAPI5 voices), you can switch to one of the alternatives below.
+
+### Option 1: macOS `say` command (macOS only)
+
+Replace the `speak_pyttsx3` / `speak_pyttsx3_safe` calls with a `subprocess` call to the built-in `say` command. This gives access to higher-quality macOS voices.
+
+```python
+import subprocess
+
+def speak_say(text: str, voice: str = "Samantha", rate: int = 175):
+    """Speak using macOS built-in 'say' command."""
+    subprocess.run(["say", "-v", voice, "-r", str(rate), text], check=False)
+```
+
+List available voices with `say -v '?'` in your terminal. Good options include **Samantha**, **Alex**, and **Daniel**.
+
+### Option 2: Google Text-to-Speech (`gTTS`) — requires internet
+
+```bash
+pip install gTTS playsound
+```
+
+```python
+import tempfile
+from gtts import gTTS
+from playsound import playsound
+
+def speak_gtts(text: str, language: str = "en"):
+    """Speak using Google TTS (requires internet)."""
+    tts = gTTS(text=text, lang=language)
+    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=True) as f:
+        tts.save(f.name)
+        playsound(f.name)
+```
+
+Supports all languages in `LANGUAGE_MAP` out of the box and produces natural-sounding speech.
+
+### Option 3: Coqui TTS / XTTS (offline, neural)
+
+```bash
+pip install TTS
+```
+
+```python
+from TTS.api import TTS
+
+tts_engine = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC")
+
+def speak_coqui(text: str, output_path: str = "/tmp/tts_output.wav"):
+    """Speak using Coqui TTS (offline neural voice)."""
+    tts_engine.tts_to_file(text=text, file_path=output_path)
+    # Play the file with your preferred audio player
+    import subprocess
+    subprocess.run(["afplay", output_path], check=False)  # macOS
+```
+
+Coqui TTS runs fully offline and produces high-quality neural voices. The first run downloads the model (~200 MB). For multi-language support, use the `xtts_v2` model.
+
+### Option 4: OpenAI TTS API (cloud, highest quality)
+
+```bash
+pip install openai
+```
+
+```python
+import tempfile
+import subprocess
+from openai import OpenAI
+
+client = OpenAI()  # uses OPENAI_API_KEY env variable
+
+def speak_openai(text: str, voice: str = "nova"):
+    """Speak using OpenAI TTS API (requires API key)."""
+    response = client.audio.speech.create(model="tts-1", voice=voice, input=text)
+    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=True) as f:
+        response.stream_to_file(f.name)
+        subprocess.run(["afplay", f.name], check=False)  # macOS
+```
+
+Voice options: `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`.
+
+### Switching the TTS in the demo
+
+To use your preferred engine, edit `src/tts.py` and replace the body of `speak_pyttsx3()` (CLI) and/or `speak_pyttsx3_safe()` (GUI) with your chosen implementation. The rest of the codebase calls these two functions, so no other changes are needed.
+
+---
+
+## �📚 Technologies Used
 
 | Component | Library / Tool |
 |-----------|---------------|
